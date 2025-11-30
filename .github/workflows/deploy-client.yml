@@ -1,11 +1,12 @@
-name: deploy-client
+name: deploy-dev
+
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
+  
 jobs:
   deploy:
     name: Deploy
@@ -19,6 +20,15 @@ jobs:
         with:
           node-version: '20.11.1'
 
+      - name: Set environment variables
+        run: |
+          touch .env.local
+          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env.local
+
+      - name: Remove msw files
+        run: |
+          find ./public -name "mockServiceWorker.js" -delete
+
       - name: Build & Export
         run: |
           yarn install
@@ -31,4 +41,4 @@ jobs:
           AWS_REGION: ap-northeast-2
         run: |
           aws s3 sync ./dist s3://waffle-2025-deploy-jeongyun --delete
-          aws cloudfront create-invalidation --distribution-id E3RS2KTBT0SIVW --paths "/*"\
+          aws cloudfront create-invalidation --distribution-id E3RS2KTBT0SIVW --paths "/*"
